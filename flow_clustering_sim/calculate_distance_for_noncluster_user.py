@@ -1,0 +1,92 @@
+from pyspark.sql import SparkSession
+import numpy as np
+import os
+from scipy.spatial.distance import cdist
+from math import sqrt
+
+def create_path(filename):
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(current_directory, filename)
+
+def extractCentroids(line):            
+        centroid_id, centroid_value = line.strip().split('\t')
+        centroid_value = centroid_value.strip().split('|')
+        centroid_value = [el.strip().split(';') for el in centroid_value]
+        centroid_coordinate = np.array(centroid_value, dtype='f')[:, 1].reshape(1, -1)
+        return (centroid_id, list(centroid_coordinate))
+
+def extractUserItemMatrix(line):
+    user, values = line.strip().split('\t')
+    coordinate = values.strip().split('|')
+    coordinate = [el.strip().split(';') for el in coordinate]
+    coordinate = np.array(coordinate, dtype='f')[:, 1].reshape(1, -1)
+    return (user, list(coordinate))
+
+def euclidean_distance(array1, array2):
+    if len(array1) != len(array2):
+        raise ValueError("Two arrays must have the same length")
+    
+    squared_diff_sum = 0
+    for i in range(len(array1)):
+        squared_diff_sum += (array1[i] - array2[i]) ** 2
+    squared_diff_sum = sum(squared_diff_sum)
+    return sqrt(squared_diff_sum)            
+
+def euclidean_distance_advance(user, user_rating_matrix):
+    result = []
+    for el in user_rating_matrix:
+         result.append((user[0],(el[0],euclidean_distance(user[1], el[1]))))
+    return result
+
+def min_distance(x):
+    min = x[0][1][1]
+    centroid = x[0][1][0]
+    for el in x:
+        if el[1][1] < min: min, centroid = el[1][1], el[1][0]
+    return (centroid,min)
+
+def devideNonClusterUser (spark0, userItemMatrixFile, centroidsFile, outputFile, user_in_cluster_path):
+    spark = SparkSession.builder.appName("calDistance").getOrCreate()
+
+    userItemData = spark.sparkContext.textFile(userItemMatrixFile)
+    UserItemRDD_tab = userItemData.map(lambda x: x.split('\t'))
+    UserItemRDD = userItemData.map(lambda x: extractUserItemMatrix(x))
+    CentroidsRDD = spark.sparkContext.textFile(centroidsFile).map(lambda x: extractCentroids(x))
+    CentroidsList = CentroidsRDD.collect()
+    # File centroid chi co nhieu trong tam
+    
+    preDistance = UserItemRDD.map(lambda x : (x, CentroidsList)) #([user, (rate)],[centroid, (rate)]) nhieu dong
+    #preDistance_l = preDistance.collect() 
+    #Tinh khoang cach
+    preDistance1 = preDistance.map(lambda x: (x[0][0],euclidean_distance_advance(x[0],x[1])))
+    #preDistance_l = preDistance1.collect()
+    #Chia user vao cac cum
+    preDistance1 = preDistance1.map(lambda x: (x[0],min_distance(x[1])))
+    assignCentroidToUser = preDistance1.map(lambda x: (x[0],(str(x[1][0]) + ';' + str(x[1][1])))).toDF(["userId","centroidMin_Distan"]).write.mode("overwrite").options(header='False', delimiter = '\t').csv(outputFile)
+
+    #Gan nhan theo dinh dang
+    
+    userItemLabel = UserItemRDD_tab.join(preDistance1).map(lambda x : (x[0],(str(x[1][0])+'&'+str(x[1][1][0]))))
+    userItemLabel.toDF(["user","rating&label"]).write.mode("append").options(header='False', delimiter = '\t').csv(user_in_cluster_path)
+
+    # with open (create_path(outputFile), 'w') as output:
+    #        for user, centroid in preDistance1.collect():
+    #             output.write(f'{user}\t{centroid[0]};{centroid[1]}\n')
+    # output.close()
+
+    # with open (create_path(user_in_cluster_path), 'a') as output:
+    #        for user, item_rate, centroid in userItemLabel.collect():
+    #             output.write(f'{user}\t{item_rate}&{centroid}\n')
+    # output.close()
+
+    spark.stop()
+     
+if  __name__ == "__main__":
+    spark = SparkSession.builder.appName("calDistance").getOrCreate()
+    userItemMatrixFile = "hdfs://localhost:9000/Clustering/UserItemMatrix.csv"
+    centroidsFile = "hdfs://localhost:9000/Clustering/Centroids.csv"
+    outputFile = "hdfs://localhost:9000/Clustering/ToClusterUser.csv"
+    user_in_cluster_path = "hdfs://localhost:9000/Clustering/UserItemMatrixLabel.csv"
+    devideNonClusterUser (spark, userItemMatrixFile, centroidsFile, outputFile, user_in_cluster_path)
+    
+    spark.stop()
