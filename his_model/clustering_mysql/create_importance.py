@@ -14,10 +14,10 @@ def importance_reducer(user, ratings):
     return user, f'{user_importance}'
 
 def createImportance(spark, mysql_url, mysql_properties, output_path):
-    table_name = 'ProductReview'
+    table_name = 'TrainingData'
     # Read input data
     input_data = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
-    input_rdd = input_data.rdd.map(lambda row: (row.customerID, row.rating))
+    input_rdd = input_data.rdd.map(lambda row: (row.user_id, row.rating))
     # Map and reduce
     result = input_rdd.map(importance_mapper) \
                        .groupByKey() \

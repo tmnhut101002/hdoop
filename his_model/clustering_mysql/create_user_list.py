@@ -2,11 +2,11 @@ from pyspark.sql import SparkSession
 
 def createUserList(spark, mysql_url, mysql_properties, output_file):
     try:
-        table_name = 'ProductReview'
+        table_name = 'TrainingData'
         df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
 
         # Lấy dữ liệu từ DataFrame và chuyển đổi thành định dạng key-value
-        users = df.rdd.map(lambda row: (row.customerID, None))
+        users = df.rdd.map(lambda row: (row.user_id, None))
 
         # Loại bỏ các giá trị trùng lặp
         unique_users = users.distinct().map(lambda x: (x[0], 1))

@@ -53,10 +53,10 @@ def createUserItemMatrix(spark1, mysql_url, mysql_properties, items_file, avg_fi
 
     spark = SparkSession.builder.appName('UserItemMatrix').getOrCreate()
     
-    table_name = 'ProductReview'
+    table_name = 'TrainingData'
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
     
-    lines_input_file = df.rdd.map(lambda row: (row.customerID, row.productID, row.rating))
+    lines_input_file = df.rdd.map(lambda row: (row.user_id, row.item_id, row.rating))
     user_item_rating_rdd = lines_input_file.map(extract_user_item_rating)
 
     #avergrate user rating
@@ -91,16 +91,16 @@ if __name__ == '__main__':
         .config("spark.jars", "mysql-connector-java-8.0.13.jar") \
         .getOrCreate()
 
-    mysql_url = "jdbc:mysql://localhost:3306/ML100?useSSL=false"
+    mysql_url = "jdbc:mysql://localhost:3306/ecommerce?useSSL=false"
     mysql_properties = {
         "user": "root",
         "password": "Password@123",
         "driver": "com.mysql.cj.jdbc.Driver"
     }
 
-    avg_file = "hdfs:///Clustering_mysql/AverageRating"
-    items_file = "hdfs:///Clustering_mysql/Item"
-    output_file = "hdfs:///Clustering_mysql/UserItemMatrix"
+    avg_file = "hdfs:///HM_clustering/AverageRating"
+    items_file = "hdfs:///HM_clustering/Item"
+    output_file = "hdfs:///HM_clustering/UserItemMatrix"
     createUserItemMatrix(spark, mysql_url, mysql_properties, items_file, avg_file, output_file)
     spark.stop()
 

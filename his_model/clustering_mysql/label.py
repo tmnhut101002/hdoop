@@ -16,8 +16,8 @@ def simpleLabel(spark0, user_in_cluster_path, output_user_label):
 
 if __name__ == '__main__':
     spark = SparkSession.builder.appName('label').getOrCreate()
-    user_in_cluster_path = "hdfs:///Clustering_mysql/UserItemMatrixLabel"
-    user_label = "hdfs:///Clustering_mysql/Label"
+    user_in_cluster_path = "hdfs:///HM_clustering/UserItemMatrixLabel"
+    user_label = "hdfs:///HM_clustering/Label"
     simpleLabel(spark, user_in_cluster_path, user_label)
     spark.stop()
 

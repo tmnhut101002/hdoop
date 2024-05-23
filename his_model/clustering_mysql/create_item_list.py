@@ -1,11 +1,11 @@
 from pyspark.sql import SparkSession
 
 def createItemList(spark, mysql_url, mysql_properties, output_file):
-    table_name = 'ProductReview'
+    table_name = 'TrainingData'
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
 
     # Chuyển đổi dữ liệu thành định dạng key-value
-    items = df.rdd.map(lambda row: (row.productID, None))
+    items = df.rdd.map(lambda row: (row.item_id, None))
 
     # Loại bỏ các giá trị trùng lặp
     unique_items = items.distinct().map(lambda x: (x[0], 1))

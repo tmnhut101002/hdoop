@@ -18,7 +18,7 @@ from label import simpleLabel
 from create_user_list import createUserList
 from calculate_avg_rating import calculateAvgRating
 
-num_cluster = 5
+num_cluster = 3
 USER_FILE = "hdfs:///HM_clustering/User"
 i = 1
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
         input_path_nearest_points = "hdfs:///HM_clustering/M_NearestPoints"
         output_path = "hdfs:///HM_clustering/Importance"
         discard_nearest_points_F(spark, input_path_matrix, input_path_nearest_points, output_path)
-        i+=1
+        #i+=1
 
     #Xu ly user chua co cum => dua user vao cum co centroid gan minh nhat
     userItemMatrixFile = "hdfs:///HM_clustering/UserItemMatrix"

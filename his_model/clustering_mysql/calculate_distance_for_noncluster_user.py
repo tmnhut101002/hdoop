@@ -72,10 +72,10 @@ def devideNonClusterUser (spark0, userItemMatrixFile, centroidsFile, outputFile,
 
 if  __name__ == "__main__":
     spark = SparkSession.builder.appName("calDistance").getOrCreate()
-    userItemMatrixFile = "hdfs:///Clustering_mysql/UserItemMatrix"
-    centroidsFile = "hdfs:///Clustering_mysql/Centroids"
-    outputFile = "hdfs:///Clustering_mysql/ToClusterUser"
-    user_in_cluster_path = "hdfs:///Clustering_mysql/UserItemMatrixLabel"
+    userItemMatrixFile = "hdfs:///HM_clustering/UserItemMatrix"
+    centroidsFile = "hdfs:///HM_clustering/Centroids"
+    outputFile = "hdfs:///HM_clustering/ToClusterUser"
+    user_in_cluster_path = "hdfs:///HM_clustering/UserItemMatrixLabel"
     devideNonClusterUser (spark, userItemMatrixFile, centroidsFile, outputFile, user_in_cluster_path)
 
     spark.stop()

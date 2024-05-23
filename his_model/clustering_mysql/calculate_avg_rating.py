@@ -1,11 +1,11 @@
 from pyspark.sql import SparkSession
 
 def calculateAvgRating(spark, mysql_url, mysql_properties, output_file):
-    table_name = 'ProductReview'
+    table_name = 'TrainingData'
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
 
     # Lấy dữ liệu từ DataFrame và chuyển đổi thành định dạng key-value
-    ratings = df.rdd.map(lambda row: (row.customerID, row.rating))
+    ratings = df.rdd.map(lambda row: (row.user_id, row.rating))
 
     user_totals = ratings.aggregateByKey((0, 0), lambda a,b: (a[0] + b, a[1] + 1), lambda a,b: (a[0] + b[0], a[1] + b[1]))
 
