@@ -1,8 +1,9 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+import os
+import shutil
 
 def insertDataToDB(spark, mysql_url, mysql_properties):
-    # spark = SparkSession.builder.appName("clusteringForRS").getOrCreate()
     table_name = 'TrainingData'
 
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
@@ -72,6 +73,11 @@ def splitAVG(mysql_url, mysql_properties):
                 file.write(f"{user}\t{avg_rating}\n")
                 
     spark.stop() 
+
+def clear_directory(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    os.makedirs(directory)
     
 if __name__ == "__main__":
     spark = SparkSession.builder \
@@ -86,6 +92,8 @@ if __name__ == "__main__":
         "driver": "com.mysql.cj.jdbc.Driver"
     }
     insertDataToDB(spark, mysql_url, mysql_properties)
+    output_directory = "../mfps_v2/temp_preSIM"
+    clear_directory(output_directory)
     splitInput(mysql_url, mysql_properties)
     splitAVG(mysql_url, mysql_properties)
     

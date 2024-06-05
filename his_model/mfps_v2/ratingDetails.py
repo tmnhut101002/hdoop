@@ -92,15 +92,11 @@ def RatingDetails(input_file, avg_rating):
 
     input_with_rate_list = input_with_rate_rdd.collect()
     input_with_rate_dict = Convert(input_with_rate_list,{})
-
-    aaa = input_with_rate_dict.get(('1','919'))
     
     rc_rdd = input_rdd.map(lambda x: mapRcRDD(x, input_list)).flatMap(lambda x : x)
-    rc_rddl = rc_rdd.take(5)
 
     rd_rdd = rc_rdd.map(lambda x: mapRdRDD(x,avg_dict,input_with_rate_dict)).flatMap(lambda x : x).map(lambda x: (x[0]+';'+x[1],str(x[2])+';'+'rd'))
     
-    rd_rddl = rd_rdd.take(5)
     rd_df = rd_rdd.toDF(["U1_U2", "rd"])
 
     pd_df = rd_df.toPandas()

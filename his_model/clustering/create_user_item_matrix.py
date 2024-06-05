@@ -37,12 +37,12 @@ def mapValueResult(x):
     for i in range(len(real_rating)):
         for j in range(len(result_list)):
             if str(result_list[j]) == str(real_rating[i]):
-                  result_list[j] = str(result_list[j])  + ";" + str(real_rating[i+1])
+                result_list[j] = str(result_list[j])  + ";" + str(real_rating[i+1])
 
     for i in range(len(result_list)):
-          a = str(result_list[i]).split(';')
-          if len(a) == 1:
-               result_list[i]= str(result_list[i]) +';'+ str(user_avg[1])
+        a = str(result_list[i]).split(';')
+        if len(a) == 1:
+            result_list[i]= str(result_list[i]) +';'+ str(user_avg[1])
 
     return  ((user_avg[0]), '|'.join(result_list))
 
@@ -69,12 +69,12 @@ def createUserItemMatrix(spark1, mysql_url, mysql_properties, items_file, avg_fi
     oneuser_moreitem_rdd = user_avg_rating_rdd. join(user_rdd.map(lambda x: (x,list(items)))).map(lambda x: ((x[0],x[1][0]),x[1][1])) # [0] (user,avg) [(item,rate(-1)),...]
     
     user_avg_item_rdd_0 = user_avg_rating_rdd.join(user_item_rating_rdd)#user (avg, item) -- user trung
-    user_avg_item_rdd_2 = user_avg_item_rdd_0.map(lambda x: ((x[0],x[1][1]),x[1][0])) #(user,item),(avg)
-    user_avg_item_rdd_3 = user_avg_item_rdd_2.join(user_item_rating_rdd.map(lambda x: ((x[0],x[1]),x[2])))# (u,i),(a,r)
-    user_avg_item_rdd_4 = user_avg_item_rdd_3.map (lambda x : ((x[0][0],x[1][0]),(x[0][1],x[1][1])))#[0](u,a),(i,r); [,](u,a),(i,r);...
-    user_avg_item_rdd_5 = user_avg_item_rdd_4.sortByKey().reduceByKey(lambda x,y : x + y).map(lambda x: list(x))
+    user_avg_item_rdd_0 = user_avg_item_rdd_0.map(lambda x: ((x[0],x[1][1]),x[1][0])) #(user,item),(avg)
+    user_avg_item_rdd_0 = user_avg_item_rdd_0.join(user_item_rating_rdd.map(lambda x: ((x[0],x[1]),x[2])))# (u,i),(a,r)
+    user_avg_item_rdd_0 = user_avg_item_rdd_0.map (lambda x : ((x[0][0],x[1][0]),(x[0][1],x[1][1])))#[0](u,a),(i,r); [,](u,a),(i,r);...
+    user_avg_item_rdd_0 = user_avg_item_rdd_0.sortByKey().reduceByKey(lambda x,y : x + y).map(lambda x: list(x))
 
-    result_rdd = oneuser_moreitem_rdd.join(user_avg_item_rdd_5)
+    result_rdd = oneuser_moreitem_rdd.join(user_avg_item_rdd_0)
     result = result_rdd.map(mapValueResult).toDF(["user","ItemRating"])
 
     result.write.mode('overwrite').options(header='False', delimiter='\t').csv(output_file)

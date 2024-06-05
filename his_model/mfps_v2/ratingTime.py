@@ -86,7 +86,6 @@ def RatingTime(input_file):
     
 
     rt_rdd = rc_rdd.map(lambda x: mapRtRDD(x,input_with_time_dict)).flatMap(lambda x : x).map(lambda x: (x[0]+';'+x[1],str(x[2])+';'+'rt'))
-    aa= rt_rdd.take(5)
 
     rt_df = rt_rdd.toDF(["U1_U2", "rt"])
     pd_df = rt_df.toPandas()

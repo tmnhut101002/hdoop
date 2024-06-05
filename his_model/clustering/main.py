@@ -18,7 +18,7 @@ from label import simpleLabel
 from create_user_list import createUserList
 from calculate_avg_rating import calculateAvgRating
 
-num_cluster = 3
+num_cluster = 5
 USER_FILE = "hdfs:///HM_clustering/User"
 i = 1
 

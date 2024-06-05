@@ -7,6 +7,7 @@ from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.field import TagField, NumericField
 import os
 from pyspark.sql.types import FloatType
+import mysql.connector
 
 def mapRC(line):
     key, value = line.strip().split("\t")
@@ -61,7 +62,6 @@ def mapCalMFPS (rc,ru,rd,rt):
     
 
 def mfps(rc_df, ru_df, rd_df, rt_df):
-
     conf = SparkConf()\
     .setAppName("MFPS")\
     .set("spark.eventLog.enabled","true")\
@@ -120,16 +120,7 @@ def initialize_redis_index(redis_client, model_index_name, model_key_base):
         )
     )
     
-    
 def load_sim_to_redis(df, redis_client, model_key_base):
-    for index, row in df.iterrows():
-        key = f"{model_key_base}:{index}"
-        redis_client.json().set(key, '$', {
-            "user_u": row['user_u'],
-            "user_v": row['user_v'],
-            "mfps": row['mfps']
-        })
-        
     MFPSs_loaded = 0
     
     try:
@@ -138,7 +129,7 @@ def load_sim_to_redis(df, redis_client, model_key_base):
         for index, row in df.iterrows():
             user_id_u = row['user_u']
             user_id_v = row['user_v']
-            mfps = row['mfps']
+            mfps = float(row['mfps'])
             
             data = {
                 'user_id_u': user_id_u,
@@ -159,9 +150,21 @@ def load_sim_to_redis(df, redis_client, model_key_base):
 
     print(f"Loaded {MFPSs_loaded} MFPSs into Redis.")
 
+def load_sim_to_mysql(df):
+    cnx = mysql.connector.connect(user='root', password='Password@123',host='localhost', database='ecommerce')
+    cursor = cnx.cursor()
+    for row in df.itertuples():
+        user_u = str(row.user_u)
+        user_v = str(row.user_v)
+        sim = float(row.mfps)
+        print(f'Insert {user_u}:{user_v}:{sim}')
+        cursor.execute('INSERT INTO Sim (user_u, user_v, sim) VALUES (%s, %s, %s);',(user_u, user_v, sim))
+    cnx.commit()
+    
 if  __name__ == "__main__":
     start = timeit.default_timer()
     pd_df = mfps("hdfs://localhost:9000/MFPS/rc.csv","hdfs://localhost:9000/MFPS/ru.csv","hdfs://localhost:9000/MFPS/rd.csv","hdfs://localhost:9000/MFPS/rt.csv","hdfs://localhost:9000/MFPS/mfps.csv")
     stop = timeit.default_timer()
     with open('./output/time.txt', 'a') as out:
         out.write('mfps end: ' +str(stop-start)+'\n')
+    

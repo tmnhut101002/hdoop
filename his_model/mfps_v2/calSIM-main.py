@@ -2,20 +2,26 @@ from ratingCommodity import RatingCommodity
 from ratingDetails import RatingDetails
 from ratingUsefullness import RatingUsefullness
 from ratingTime import RatingTime
-from mfps import mfps, load_sim_to_redis, initialize_redis_index
+from mfps import mfps, load_sim_to_redis, initialize_redis_index, load_sim_to_mysql
 import timeit
 import mysql.connector
 import redis
 
 if  __name__ == "__main__":
-    redis_client = redis.from_url('redis://localhost:6379/?decode_responses=True')
-    MODEL_INDEX_NAME = "idx:sim"
-    MODEL_KEY_BASE = "ecommerce:sim"
-    try:
-        redis_client.ft(MODEL_INDEX_NAME).info()
-        print('Index already exists!')
-    except:
-        initialize_redis_index(redis_client, MODEL_INDEX_NAME, MODEL_KEY_BASE)
+    # redis_client = redis.from_url('redis://localhost:6379/?decode_responses=True')
+    # MODEL_INDEX_NAME = "idx:sim"
+    # MODEL_KEY_BASE = "ecommerce:sim"
+    # print("Delete keys...")
+    # keys_to_delete = redis_client.keys(f"{MODEL_KEY_BASE}:*")
+    # if keys_to_delete:
+    #     redis_client.delete(*keys_to_delete)
+    #     print(f"Deleted {len(keys_to_delete)} existing keys")
+    
+    # try:
+    #     redis_client.ft(MODEL_INDEX_NAME).info()
+    #     print('Index already exists!')
+    # except:
+    #     initialize_redis_index(redis_client, MODEL_INDEX_NAME, MODEL_KEY_BASE)
     
     db_config = {
         'user': 'root',
@@ -30,6 +36,9 @@ if  __name__ == "__main__":
     query = "SELECT DISTINCT label FROM TrainingData_Cluster"
     cursor.execute(query)
     ListLabel = [row[0] for row in cursor.fetchall()]
+    cursor.close()
+    cnx.close()
+    
     time = 0
     for index in range(len(ListLabel)):
         INPUT = f'file:///home/hdoop/his_model/mfps_v2/temp_preSIM/input_{ListLabel[index]}.txt'
@@ -45,8 +54,8 @@ if  __name__ == "__main__":
         rtTime = timeit.default_timer()
 
         sim_df = mfps(rc_df,ru_df,rd_df,rt_df)
-        load_sim_to_redis(sim_df, redis_client, MODEL_KEY_BASE)
-        
+        # load_sim_to_redis(sim_df, redis_client, MODEL_KEY_BASE)
+        load_sim_to_mysql(sim_df)
         stop = timeit.default_timer()
         with  open('./output/time.txt','a') as f:
             f.write(f'Start: {start} ... End: {stop}\n')
@@ -56,4 +65,4 @@ if  __name__ == "__main__":
             f.write(f'Rating Details: {rdTime-ruTime}s\n')
             f.write(f'Rating Time: {rtTime-rdTime}s\n')
             time += (stop-start)
-            f.write(f'Total: {time}')
+            f.write(f'Total: {time}\n')
