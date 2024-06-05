@@ -2,7 +2,7 @@ from ratingCommodity import RatingCommodity
 from ratingDetails import RatingDetails
 from ratingUsefullness import RatingUsefullness
 from ratingTime import RatingTime
-from mfps import mfps, load_sim_to_redis, initialize_redis_index, load_sim_to_mysql
+from mfps import mfps, load_sim_to_mysql
 import timeit
 import mysql.connector
 import redis
@@ -36,8 +36,11 @@ if  __name__ == "__main__":
     query = "SELECT DISTINCT label FROM TrainingData_Cluster"
     cursor.execute(query)
     ListLabel = [row[0] for row in cursor.fetchall()]
+    print("Truncate Table Sim...")
+    query_truncate = 'Truncate Sim;'
+    cursor.execute(query_truncate)
+    cnx.commit()
     cursor.close()
-    cnx.close()
     
     time = 0
     for index in range(len(ListLabel)):
@@ -65,4 +68,4 @@ if  __name__ == "__main__":
             f.write(f'Rating Details: {rdTime-ruTime}s\n')
             f.write(f'Rating Time: {rtTime-rdTime}s\n')
             time += (stop-start)
-            f.write(f'Total: {time}\n')
+        f.write(f'Total: {time}\n')

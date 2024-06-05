@@ -153,13 +153,16 @@ def load_sim_to_redis(df, redis_client, model_key_base):
 def load_sim_to_mysql(df):
     cnx = mysql.connector.connect(user='root', password='Password@123',host='localhost', database='ecommerce')
     cursor = cnx.cursor()
+    sl = 0
     for row in df.itertuples():
         user_u = str(row.user_u)
         user_v = str(row.user_v)
         sim = float(row.mfps)
         print(f'Insert {user_u}:{user_v}:{sim}')
         cursor.execute('INSERT INTO Sim (user_u, user_v, sim) VALUES (%s, %s, %s);',(user_u, user_v, sim))
+        sl+=1
     cnx.commit()
+    print(f'Load {sl} into database')
     
 if  __name__ == "__main__":
     start = timeit.default_timer()

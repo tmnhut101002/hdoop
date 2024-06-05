@@ -1,5 +1,4 @@
 import mysql.connector
-import redis
 import json
 import requests
 import timeit
@@ -22,24 +21,34 @@ def get_unrated_products_and_predict(user_id, redis_host='localhost', redis_port
     training_data_dict = {(row['user_id'], row['item_id']): row['rating'] for row in training_data}
     
     # Connect to Redis
-    r = redis.Redis(host=redis_host, port=redis_port, db=0)
+    # r = redis.Redis(host=redis_host, port=redis_port, db=0)
 
-    # Get top 10 similar users from Redis
-    s = timeit.default_timer()
-    sim_key_pattern = f'ecommerce:sim:{user_id}:*'
-    similar_users = []
-    for key in r.scan_iter(sim_key_pattern):
-        key_str = key.decode() if isinstance(key, bytes) else key
-        user_v = key_str.split(':')[-1]
-        sim_value = r.execute_command('JSON.GET', key_str)
-        if sim_value:
-            sim_data = json.loads(sim_value)
-            sim = sim_data.get('mfps')
-            if sim is not None:
-                similar_users.append((int(user_v), sim))
-    t = timeit.default_timer()
-    print("Load sim REDIS", t - s)
-    similar_users = sorted(similar_users, key=lambda x: -float(x[1]))
+    # # Get top 10 similar users from Redis
+    # s = timeit.default_timer()
+    # sim_key_pattern = f'ecommerce:sim:{user_id}:*'
+    # similar_users = []
+    # for key in r.scan_iter(sim_key_pattern):
+    #     key_str = key.decode() if isinstance(key, bytes) else key
+    #     user_v = key_str.split(':')[-1]
+    #     sim_value = r.execute_command('JSON.GET', key_str)
+    #     if sim_value:
+    #         sim_data = json.loads(sim_value)
+    #         sim = sim_data.get('mfps')
+    #         if sim is not None:
+    #             similar_users.append((int(user_v), sim))
+    # t = timeit.default_timer()
+    # print("Load sim REDIS", t - s)
+    # similar_users = sorted(similar_users, key=lambda x: -float(x[1]))
+    
+    query_get_sim = f'''
+        select user_v, sim
+        from Sim
+        where user_u = {user_id};
+    '''
+    cursor.execute(query_get_sim)
+    similar_users = cursor.fetchall()
+    similar_users_tuples = [(int(user['user_v']), user['sim']) for user in similar_users]
+    similar_users_tuples = sorted(similar_users_tuples, key=lambda x: x[1], reverse=True)
     
     # Get products rated by similar users but not rated by the current user
     query_unrated_products = f"""
@@ -59,15 +68,10 @@ def get_unrated_products_and_predict(user_id, redis_host='localhost', redis_port
     
 
     def calculate_predict_rating(product_id):
-        user_j_top_k = [user_v for user_v, _ in similar_users ]
-        
-        if not user_j_top_k:
-            return -1
-        
         numerator = 0
         denominator = 0
         k = 0
-        for user_v, sim in similar_users:
+        for user_v, sim in similar_users_tuples:
             if k == 50:
                 break
             if (str(user_v), str(product_id)) in training_data_dict:
@@ -89,7 +93,7 @@ def get_unrated_products_and_predict(user_id, redis_host='localhost', redis_port
 
         # Sort the list in descending order by 'predict_rating'
     sorted_result = sorted(unrated_products, key=lambda x: float(x['predict_rating']), reverse=True)
-    # print(sorted_result[:50])
+    print(sorted_result[:20])
     # Convert the sorted list to a JSON string
     json_result = json.dumps(sorted_result[:50], ensure_ascii=False, indent=4)
     res ={'customer_id': user_id, 'list': json_result}
@@ -107,11 +111,10 @@ if __name__ == '__main__':
     }
 
     user_id = '2415'
-    start = timeit.default_timer()
+    # start = timeit.default_timer()
     result = get_unrated_products_and_predict(user_id, mysql_config=mysql_config)
-    stop = timeit.default_timer()
-    print('time:', stop-start)
-    # a = {'data': result}
-    # res = requests.post('http://127.0.0.1:8080/api/recommend', json=a)
-    # print(result)
-
+    # stop = timeit.default_timer()
+    # print('time:', stop-start)
+    a = {'data': result}
+    res = requests.post('http://127.0.0.1:8080/api/recommend', json=a)
+    print(result)
