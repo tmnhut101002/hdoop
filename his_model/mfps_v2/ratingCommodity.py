@@ -41,10 +41,10 @@ def RatingCommodity(input_file):
 
     return pdrc_df
 
-if __name__ =='__main__':
-    start = timeit.default_timer()
-    pd = RatingCommodity('../input_file.txt',"hdfs://localhost:9000/MFPS/rc.csv")
+# if __name__ =='__main__':
+#     start = timeit.default_timer()
+#     pd = RatingCommodity('../input_file.txt',"hdfs://localhost:9000/MFPS/rc.csv")
 
-    stop = timeit.default_timer()
-    with open('./output/time_.txt', 'a') as out:
-        out.write('rc ' +str(stop-start)+'\n')
+#     stop = timeit.default_timer()
+#     with open('./output/time_.txt', 'a') as out:
+#         out.write('rc ' +str(stop-start)+'\n')

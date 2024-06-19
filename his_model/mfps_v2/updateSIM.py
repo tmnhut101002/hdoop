@@ -4,15 +4,8 @@ from ratingUsefullness import RatingUsefullness
 from ratingTime import RatingTime
 from mfps1h import mfps1h
 from mfps import load_sim_to_mysql
-import timeit
-import redis
 import mysql.connector
-
-
 if  __name__ == "__main__":
-    # redis_client = redis.from_url('redis://localhost:6379/?decode_responses=True')
-    # MODEL_INDEX_NAME = "idx:sim"
-    # MODEL_KEY_BASE = "ecommerce:sim"
     
     db_config = {
         'user': 'root',
@@ -53,17 +46,10 @@ if  __name__ == "__main__":
         user_list = []
         INPUT = f'file:///home/hdoop/his_model/mfps_v2/temp_preSIM/input_{ListLabel[index]}.txt'
         AVG = f'file:///home/hdoop/his_model/mfps_v2/temp_preSIM/avg_{ListLabel[index]}.txt'
-        start =  timeit.default_timer()
         rc_df = RatingCommodity(INPUT)
-        rcTime = timeit.default_timer()
         ru_df = RatingUsefullness(INPUT)
-        ruTime = timeit.default_timer()
         rd_df = RatingDetails(INPUT, AVG)
-        rdTime = timeit.default_timer()
         rt_df = RatingTime(INPUT)
-        rtTime = timeit.default_timer()
 
         sim_df = mfps1h(rc_df,ru_df,rd_df,rt_df, ListUserNewRate)
         load_sim_to_mysql(sim_df)
-        
-        stop = timeit.default_timer()

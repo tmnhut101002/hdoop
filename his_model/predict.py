@@ -115,6 +115,6 @@ if __name__ == '__main__':
     result = get_unrated_products_and_predict(user_id, mysql_config=mysql_config)
     # stop = timeit.default_timer()
     # print('time:', stop-start)
-    a = {'data': result}
-    res = requests.post('http://127.0.0.1:8080/api/recommend', json=a)
+    # a = {'data': result}
+    # res = requests.post('http://127.0.0.1:8080/api/recommend', json=a)
     print(result)

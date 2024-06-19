@@ -31,8 +31,8 @@ def euclidean_distance(array1, array2):
         squared_diff_sum += (array1[i] - array2[i]) ** 2
     squared_diff_sum = sum(squared_diff_sum)
     return sqrt(squared_diff_sum)            
-     
-def calDistance (spark0, userItemMatrixFile, centroidsFile, outputFile):
+
+def calDistance (userItemMatrixFile, centroidsFile, outputFile):
     spark = SparkSession.builder.appName("calDistance").getOrCreate()
 
     UserItemRDD = spark.sparkContext.textFile(userItemMatrixFile).map(lambda x: extractUserItemMatrix(x))
@@ -46,10 +46,7 @@ def calDistance (spark0, userItemMatrixFile, centroidsFile, outputFile):
     spark.stop()
 
 if  __name__ == "__main__":
-    spark = SparkSession.builder.appName("calDistance").getOrCreate()
-    userItemMatrixFile = "hdfs:///Clustering_mysql/UserItemMatrix"
-    centroidsFile = "hdfs:///Clustering_mysql/NewCentroids"
-    outputFile = "hdfs:///Clustering_mysql/Distance"
-    calDistance (spark, userItemMatrixFile, centroidsFile, outputFile)
-    
-    spark.stop()
+    userItemMatrixFile = "hdfs://localhost:9000/HM_clustering/UserItemMatrix"
+    centroidsFile = "hdfs://localhost:9000/HM_clustering/NewCentroids"
+    outputFile = "hdfs://localhost:9000/HM_clustering/Distance"
+    calDistance(userItemMatrixFile, centroidsFile, outputFile)

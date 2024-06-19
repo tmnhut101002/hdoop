@@ -10,7 +10,7 @@ def extract_line(line):
             return (user, float(importance))
 
 #Su dung cho ca F va D
-def calculateScaling (spark0, input_file, max_input_file, output_file):
+def calculateScaling (input_file, max_input_file, output_file):
 
     spark = SparkSession.builder.appName('caculateScaling').getOrCreate()
     #Read input file and convert to RDD
@@ -33,19 +33,9 @@ def calculateScaling (spark0, input_file, max_input_file, output_file):
     spark.stop()
 
 if __name__ ==  "__main__":
-    spark = SparkSession.builder.appName('caculateScaling').getOrCreate()
 
-    #Input: user \t F
-    input_file_1 = "hdfs:///Clustering_mysql/Importance"
-    input_file_2 = "hdfs:///Clustering_mysql/MaxImportance"
-    output_file = "hdfs:///Clustering_mysql/NewImportance"
-
-    input_file_1d = "hdfs:///Clustering_mysql/Distance"
-    input_file_2d = "hdfs:///Clustering_mysql/MaxDistance"
-    output_file_d = "hdfs:///Clustering_mysql/NewDistance"
-    
-    calculateScaling(spark, input_file_1, input_file_2, output_file)
-    calculateScaling(spark, input_file_1d, input_file_2d, output_file_d)
-
-    spark.stop()
+    input_file_1 = "hdfs://localhost:9000/HM_clustering/Importance"
+    input_file_2 = "hdfs://localhost:9000/HM_clustering/MaxImportance"
+    output_file = "hdfs://localhost:9000/HM_clustering/NewImportance"
+    calculateScaling(input_file_1, input_file_2, output_file)
 

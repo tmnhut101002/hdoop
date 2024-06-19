@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 
-def createItemList(spark, mysql_url, mysql_properties, output_file):
-    table_name = 'TrainingData'
+def createItemList(spark, mysql_url, mysql_properties, output_file, table_name):
+    
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
 
     # Chuyển đổi dữ liệu thành định dạng key-value
@@ -16,19 +16,16 @@ def createItemList(spark, mysql_url, mysql_properties, output_file):
     result_data.write.mode('overwrite').options(header='False').csv(output_file)
 
 if __name__ == '__main__':
-    spark = SparkSession.builder \
-        .appName("ItemList") \
-        .config("spark.jars", "mysql-connector-java-8.0.13.jar") \
-        .getOrCreate()
-
     mysql_url = "jdbc:mysql://localhost:3306/ML100?useSSL=false"
     mysql_properties = {
         "user": "root",
         "password": "Password@123",
         "driver": "com.mysql.cj.jdbc.Driver"
     }
+    table_name = 'TrainingData'
 
-    output_file = "hdfs:///Clustering_mysql/Item"
-
-    createItemList(spark, mysql_url, mysql_properties, output_file)
-    spark.stop()
+    spark = SparkSession.builder \
+        .appName("ItemList") \
+        .getOrCreate()
+    output_file = "hdfs://localhost:9000/HM_clustering/Item"
+    createItemList(spark, mysql_url, mysql_properties, output_file, table_name)

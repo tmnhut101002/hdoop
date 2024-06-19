@@ -15,7 +15,7 @@ def get_max_reduce(_, values):
 
     return f'{max_key}', f'{max_value}'
 
-def getMax(spark, input_path, output_path):
+def getMax(input_path, output_path):
     spark = SparkSession.builder.appName("GetMax").getOrCreate()
     input_data = spark.sparkContext.textFile(input_path)
     mapped_data = input_data.map(get_max_map)
@@ -26,15 +26,7 @@ def getMax(spark, input_path, output_path):
     spark.stop()
 
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("GetMax").getOrCreate()
-
-    input_path = "hdfs:///Clustering_mysql/Importance"
-    output_path = "hdfs:///Clustering_mysql/MaxImportance"
-
-    input_path_d = "hdfs:///Clustering_mysql/Distance"
-    output_path_d = "hdfs:///Clustering_mysql/MaxDistance"
-
-    getMax(spark,input_path,output_path)
-    getMax(spark,input_path_d, output_path_d)
-
-    spark.stop()
+    
+    input_path = "hdfs://localhost:9000/HM_clustering/Importance"
+    output_path = "hdfs://localhost:9000/HM_clustering/MaxImportance"
+    getMax(input_path,output_path)

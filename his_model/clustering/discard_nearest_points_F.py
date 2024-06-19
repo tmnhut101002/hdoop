@@ -1,8 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, collect_list, split, explode, concat_ws
-import os
+from pyspark.sql.functions import collect_list
 
-def discard_nearest_points(spark0, input_path_F, input_path_nearest_points, output_path):
+def discard_nearest_points(input_path_F, input_path_nearest_points, output_path):
 
     spark = SparkSession.builder.appName("DiscardNearestPoints").getOrCreate()
     # Read the M_nearest_points data
@@ -23,18 +22,12 @@ def discard_nearest_points(spark0, input_path_F, input_path_nearest_points, outp
     # Collect the results
     result_df = result_df.groupBy("user").agg(collect_list("value_F").alias("result_value")).rdd.map(lambda x: (x['user'], x["result_value"][0])).toDF(['user','value'])
 
-
     result_df.write.mode('overwrite').options(header = "False", delimiter = '\t').csv(output_path)
 
     spark.stop()
 
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("DiscardNearestPoints").getOrCreate()
-
-    input_path_matrix = "hdfs:///Clustering_mysql/Importance"
-    input_path_nearest_points = "hdfs:///Clustering_mysql/M_NearestPoints"
-    output_path = "hdfs:///Clustering_mysql/Importance"
-
-    discard_nearest_points(spark, input_path_matrix, input_path_nearest_points, output_path)
-
-    spark.stop()
+    input_path_matrix = "hdfs://localhost:9000/HM_clustering/Importance"
+    input_path_nearest_points = "hdfs://localhost:9000/HM_clustering/M_NearestPoints"
+    output_path = "hdfs://localhost:9000/HM_clustering/Importance"
+    discard_nearest_points(input_path_matrix, input_path_nearest_points, output_path)

@@ -93,9 +93,9 @@ def RatingTime(input_file):
     spark.stop()
     return pd_df
 
-if  __name__ == "__main__":
-    start = timeit.default_timer()
-    pd = RatingTime('../input_file.txt', "hdfs://localhost:9000/MFPS/rt.csv")
-    stop = timeit.default_timer()
-    with open('./output/time_.txt', 'a') as out:
-        out.write('rt ' +str(stop-start)+'\n')
+# if  __name__ == "__main__":
+#     start = timeit.default_timer()
+#     pd = RatingTime('../input_file.txt', "hdfs://localhost:9000/MFPS/rt.csv")
+#     stop = timeit.default_timer()
+#     with open('./output/time_.txt', 'a') as out:
+#         out.write('rt ' +str(stop-start)+'\n')

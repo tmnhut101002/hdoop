@@ -6,7 +6,7 @@ def extract(line):
     item_rate, centroid = value.strip().split('&')
     return (key, centroid)
 
-def simpleLabel(spark0, user_in_cluster_path, output_user_label):
+def simpleLabel(user_in_cluster_path, output_user_label):
     spark = SparkSession.builder.appName('label').getOrCreate()
 
     user_item_label_rdd = spark.sparkContext.textFile(user_in_cluster_path).map(lambda x: extract(x))
@@ -15,10 +15,7 @@ def simpleLabel(spark0, user_in_cluster_path, output_user_label):
     spark.stop()
 
 if __name__ == '__main__':
-    spark = SparkSession.builder.appName('label').getOrCreate()
-    user_in_cluster_path = "hdfs:///HM_clustering/UserItemMatrixLabel"
-    user_label = "hdfs:///HM_clustering/Label"
-    simpleLabel(spark, user_in_cluster_path, user_label)
-    spark.stop()
+    user_in_cluster_path = "hdfs://localhost:9000/HM_clustering/UserItemMatrixLabel"
+    user_label = "hdfs://localhost:9000/HM_clustering/Label"
+    simpleLabel(user_in_cluster_path, user_label)
 
-   

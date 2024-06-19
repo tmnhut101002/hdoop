@@ -104,9 +104,9 @@ def RatingDetails(input_file, avg_rating):
     spark.stop()
     return pd_df
 
-if  __name__ == "__main__":
-    start = timeit.default_timer()
-    pd = RatingDetails('../input_file.txt', "hdfs://localhost:9000/MFPS/rd.csv",'./output/avg.txt')
-    stop = timeit.default_timer()
-    with open('./output/time_.txt', 'a') as out:
-        out.write('rd ' +str(stop-start)+'\n')
+# if  __name__ == "__main__":
+#     start = timeit.default_timer()
+#     pd = RatingDetails('../input_file.txt', "hdfs://localhost:9000/MFPS/rd.csv",'./output/avg.txt')
+#     stop = timeit.default_timer()
+#     with open('./output/time_.txt', 'a') as out:
+#         out.write('rd ' +str(stop-start)+'\n')

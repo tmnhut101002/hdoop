@@ -14,11 +14,13 @@ def create_centroid_reducer(user, values):
                 yield user, value
                 return
 
-def createCentroid(spark0, user_item_matrix_path, most_important_user_path, output_path_centroids, output_path_new_centroid):
-    # Đọc dữ liệu đầu vào thành RDD
-    conf =  SparkConf().setAppName("CreateCentroid").set("spark.network.timeout","3601s").set("spark.executor.heartbeatInterval","3600s").setMaster("local[4]")
+def createCentroid(user_item_matrix_path, most_important_user_path, output_path_centroids, output_path_new_centroid):
+    conf =  SparkConf().setAppName("CreateCentroid") \
+        .set("spark.network.timeout","3601s") \
+        .set("spark.executor.heartbeatInterval","3600s") \
+        .setMaster("local[4]")
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
-
+    # Đọc dữ liệu đầu vào thành RDD
     user_item_matrix_rdd = spark.sparkContext.textFile(user_item_matrix_path)
     most_important_user_rdd = spark.sparkContext.textFile(most_important_user_path)
 
@@ -44,12 +46,8 @@ def createCentroid(spark0, user_item_matrix_path, most_important_user_path, outp
     spark.stop()
 
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("CreateCentroid").getOrCreate()
-
-    user_item_matrix_path = "hdfs:///Clustering_mysql/UserItemMatrix"
-    most_important_user_path = "hdfs:///Clustering_mysql/MaxImportance"
-    output_path = "hdfs:///Clustering_mysql/Centroids"
-    output_path_new = "hdfs:///Clustering_mysql/NewCentroids"
-
-    createCentroid(spark, user_item_matrix_path, most_important_user_path, output_path, output_path_new)
-    spark.stop()
+    user_item_matrix_path = "hdfs://localhost:9000/HM_clustering/UserItemMatrix"
+    most_important_user_path = "hdfs://localhost:9000/HM_clustering/MaxImportance"
+    output_path = "hdfs://localhost:9000/HM_clustering/Centroids"
+    output_path_new = "hdfs://localhost:9000/HM_clustering/NewCentroids"
+    createCentroid(user_item_matrix_path, most_important_user_path, output_path, output_path_new)

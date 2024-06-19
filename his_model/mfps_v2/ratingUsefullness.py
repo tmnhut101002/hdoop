@@ -42,9 +42,9 @@ def RatingUsefullness(input_file):
     return pd_df
 
 
-if  __name__ == "__main__":
-    start = timeit.default_timer()
-    pd = RatingUsefullness('../input_file.txt',"hdfs://localhost:9000/MFPS/ru.csv")
-    stop = timeit.default_timer()
-    with open('./output/time_.txt', 'a') as out:
-        out.write('ru '+str(stop-start)+'\n')
+# if  __name__ == "__main__":
+#     start = timeit.default_timer()
+#     pd = RatingUsefullness('../input_file.txt',"hdfs://localhost:9000/MFPS/ru.csv")
+#     stop = timeit.default_timer()
+#     with open('./output/time_.txt', 'a') as out:
+#         out.write('ru '+str(stop-start)+'\n')

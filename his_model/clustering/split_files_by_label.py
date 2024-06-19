@@ -3,9 +3,7 @@ from pyspark.sql import functions as F
 import os
 import shutil
 
-def insertDataToDB(spark, mysql_url, mysql_properties):
-    table_name = 'TrainingData'
-
+def insertDataToDB(spark, mysql_url, mysql_properties, table_name):
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
     input_file_rdd = df.rdd.map(lambda row: (row.user_id, row.item_id, row.rating, row.timestamp))
     cols = ["user_id","item_id", "rating", "timestamp"]
@@ -80,18 +78,17 @@ def clear_directory(directory):
     os.makedirs(directory)
     
 if __name__ == "__main__":
-    spark = SparkSession.builder \
-        .appName("SplitFile") \
-        .config("spark.jars", "mysql-connector-java-8.0.13.jar") \
-        .getOrCreate()
-
     mysql_url = "jdbc:mysql://localhost:3306/ecommerce?useSSL=false"
     mysql_properties = {
         "user": "root",
         "password": "Password@123",
         "driver": "com.mysql.cj.jdbc.Driver"
     }
-    insertDataToDB(spark, mysql_url, mysql_properties)
+    table_name = "TrainingData"
+    spark = SparkSession.builder \
+        .appName("SplitFile") \
+        .getOrCreate()
+    insertDataToDB(spark, mysql_url, mysql_properties, table_name)
     output_directory = "../mfps_v2/temp_preSIM"
     clear_directory(output_directory)
     splitInput(mysql_url, mysql_properties)

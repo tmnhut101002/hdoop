@@ -9,8 +9,6 @@ def create_path(filename):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(current_directory, filename)
 
-
-    
 def extract_user_item_rating(df):
     user = df[0]
     item = df[1]
@@ -46,19 +44,18 @@ def mapValueResult(x):
 
     return  ((user_avg[0]), '|'.join(result_list))
 
-def createUserItemMatrix(spark1, mysql_url, mysql_properties, items_file, avg_file, output_file):
+def createUserItemMatrix(mysql_url, mysql_properties, items_file, avg_file, output_file, table_name):
     #item_list
     items_path = items_file
     items = create_item_list(items_path)
 
     spark = SparkSession.builder.appName('UserItemMatrix').getOrCreate()
     
-    table_name = 'TrainingData'
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
     
     lines_input_file = df.rdd.map(lambda row: (row.user_id, row.item_id, row.rating))
     user_item_rating_rdd = lines_input_file.map(extract_user_item_rating)
-
+    
     #avergrate user rating
     avg_ratings = spark.sparkContext.textFile(avg_file)
     user_avg_rating_rdd = avg_ratings.map(extract_avg_rating)
@@ -80,10 +77,6 @@ def createUserItemMatrix(spark1, mysql_url, mysql_properties, items_file, avg_fi
     result.write.mode('overwrite').options(header='False', delimiter='\t').csv(output_file)
 
     spark.stop()
-
-
-
-
 
 if __name__ == '__main__':
     spark = SparkSession.builder \

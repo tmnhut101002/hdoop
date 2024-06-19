@@ -10,8 +10,7 @@ def extract(line):
             user, info = fields[0], fields[1]
             return (user, float(info))
 
-def sumFD(spark0, input_file_F,input_file_D, output_file):
-
+def sumFD(input_file_F,input_file_D, output_file):
     spark = SparkSession.builder.appName('caculateSumFD').getOrCreate()
 
     lines_input_file_F = spark.sparkContext.textFile(input_file_F)
@@ -25,20 +24,10 @@ def sumFD(spark0, input_file_F,input_file_D, output_file):
 
     sum_FD_rdd.toDF(['user','sumFD']).write.mode("overwrite").options(header='False', delimiter = '\t').csv(output_file)
 
-    # with open (create_path(output_file), 'w') as output:
-    #        for  user, sumFD in sum_FD_rdd.collect():
-    #             output.write(f'{user}\t{sumFD}\n')
-    # output.close()
-
     spark.stop()
 
 if  __name__ == "__main__":
-    spark = SparkSession.builder.appName('caculateSumFD').getOrCreate()
-
-    input_file_F = "hdfs:///Clustering_mysql/NewImportance"
-    input_file_D = "hdfs:///Clustering_mysql/NewDistance"
-    output_file= "hdfs:///Clustering_mysql/SumFD"
-
-    sumFD(spark,input_file_F,input_file_D, output_file)
-
-    spark.stop()
+    input_file_F = "hdfs://localhost:9000/HM_clustering/NewImportance"
+    input_file_D = "hdfs://localhost:9000/HM_clustering/NewDistance"
+    output_file= "hdfs://localhost:9000/HM_clustering/SumFD"
+    sumFD(input_file_F, input_file_D, output_file)

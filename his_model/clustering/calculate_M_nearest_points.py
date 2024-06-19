@@ -1,7 +1,6 @@
-from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 
-def calculateNearestPoints(spark0, users_file, distance_file, output_file):
+def calculateNearestPoints(users_file, distance_file, output_file):
     spark = SparkSession.builder.appName("MNearestPoints").getOrCreate()
     # Load data from D.txt
     distance_data = spark.sparkContext.textFile(distance_file)
@@ -24,10 +23,7 @@ def calculateNearestPoints(spark0, users_file, distance_file, output_file):
 
 
 if __name__ == '__main__':
-    spark = SparkSession.builder.appName("MNearestPoints").getOrCreate()
-    distance_file = "hdfs:///Clustering_mysql/Distance"
-    users_file = "hdfs:///Clustering_mysql/User"
-    output_file = "hdfs:///Clustering_mysql/M_NearestPoints"
-
-    calculateNearestPoints(spark, users_file, distance_file, output_file)
-    spark.stop()
+    distance_file = "hdfs://localhost:9000/HM_clustering/Distance"
+    users_file = "hdfs://localhost:9000/HM_clustering/User"
+    output_file = "hdfs://localhost:9000/HM_clustering/M_NearestPoints"
+    calculateNearestPoints(users_file, distance_file, output_file)
