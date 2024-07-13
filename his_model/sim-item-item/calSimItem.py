@@ -6,6 +6,7 @@ from redis.commands.search.query import Query
 import mysql.connector
 import re
 
+# Lấy key của các item
 def get_all_keys(pattern, redis_client):
     cursor = '0'
     keys = []
@@ -14,11 +15,13 @@ def get_all_keys(pattern, redis_client):
         keys.extend([key.decode('utf-8') for key in partial_keys])
     return keys
 
+# Lấy ID của item
 def extract_ids(keys):
     pattern = re.compile(r'ecommerce:product:(\d+)')
     ids = [pattern.search(str(key)).group(1) for key in keys if pattern.search(key)]
     return ids
 
+# Cập nhật item mới
 def update_product(redis_client, cursor, embedder):
     pattern = 'ecommerce:product:*'
     all_keys = get_all_keys(pattern, redis_client)
@@ -47,6 +50,7 @@ def update_product(redis_client, cursor, embedder):
         pipeline.execute()
         i += 1
 
+# Trích xuất vector name_embedding
 def get_name_embedding(redis_client, key):
     data = redis_client.json().get(key)
     if data:
@@ -56,9 +60,11 @@ def get_name_embedding(redis_client, key):
 def extract_product_id(key):
     return int(key.decode('utf-8').split(':')[-1])
 
+# Độ tương đồng Cosine
 def cosine_similarity(vec1, vec2):
     return 1 - cosine(vec1, vec2)
 
+# Tính toán độ tương đồng giữa các item
 def create_query_table(client, query, encoded_name_product, extra_params = {}, INDEX_NAME = 'idx:product-name'):
     itemSimilarity = []
     results_list = []
@@ -68,7 +74,6 @@ def create_query_table(client, query, encoded_name_product, extra_params = {}, I
         results_list.append({
                 'score': vector_score,
                 'id': doc.id,
-                # 'name': doc.name,
             })
         if vector_score != 1.0:
             itemSimilarity.append(((doc.id).split(":")[-1], vector_score))
@@ -81,7 +86,7 @@ if __name__ == '__main__':
     redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
     mysql_config = {
         'user': 'root',
-        'password': 'Password@123',
+        'password': '1234',
         'host': 'localhost',
         'database': 'ecommerce',
     }

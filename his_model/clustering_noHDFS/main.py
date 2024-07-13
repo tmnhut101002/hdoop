@@ -40,7 +40,7 @@ if __name__ ==  '__main__':
     mysql_url = "jdbc:mysql://localhost:3306/ecommerce?useSSL=false"
     mysql_properties = {
         "user": "root",
-        "password": "Password@123",
+        "password": "1234",
         "driver": "com.mysql.cj.jdbc.Driver"
     }
     table_name = 'TrainingData'

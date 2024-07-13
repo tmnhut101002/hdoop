@@ -20,6 +20,7 @@ def createCentroid(user_item_matrix_path, most_important_user_path, output_path_
         .set("spark.executor.heartbeatInterval","3600s") \
         .setMaster("local[4]")
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
+    
     # Đọc dữ liệu đầu vào thành RDD
     user_item_matrix_rdd = spark.sparkContext.textFile(user_item_matrix_path)
     most_important_user_rdd = spark.sparkContext.textFile(most_important_user_path)
@@ -42,12 +43,4 @@ def createCentroid(user_item_matrix_path, most_important_user_path, output_path_
 
     results = reduced_rdd.toDF(["User", "Centroid"])
     results.write.mode("append").options(header='False', delimiter='\t').csv(output_path_centroids)
-
     spark.stop()
-
-if __name__ == "__main__":
-    user_item_matrix_path = "hdfs://localhost:9000/HM_clustering/UserItemMatrix"
-    most_important_user_path = "hdfs://localhost:9000/HM_clustering/MaxImportance"
-    output_path = "hdfs://localhost:9000/HM_clustering/Centroids"
-    output_path_new = "hdfs://localhost:9000/HM_clustering/NewCentroids"
-    createCentroid(user_item_matrix_path, most_important_user_path, output_path, output_path_new)

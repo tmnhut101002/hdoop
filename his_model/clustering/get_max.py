@@ -17,16 +17,16 @@ def get_max_reduce(_, values):
 
 def getMax(input_path, output_path):
     spark = SparkSession.builder.appName("GetMax").getOrCreate()
+    
+    # Lấy độ quan trọng
     input_data = spark.sparkContext.textFile(input_path)
+    
+    # Tính độ quan trọng lớn nhất
     mapped_data = input_data.map(get_max_map)
     grouped_data = mapped_data.groupByKey()
+    
+    # Ghi kết quả vào lại HDFS
     result = grouped_data.map(lambda x: get_max_reduce(x[0], x[1]))
     output = result.toDF(["MaxKey", "MaxValue"])
     output.write.mode("overwrite").options(header='False', delimiter='\t').csv(output_path)
     spark.stop()
-
-if __name__ == "__main__":
-    
-    input_path = "hdfs://localhost:9000/HM_clustering/Importance"
-    output_path = "hdfs://localhost:9000/HM_clustering/MaxImportance"
-    getMax(input_path,output_path)

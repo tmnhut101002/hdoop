@@ -1,13 +1,5 @@
-import sys
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StringType
-import numpy as np
-import os
-import pyspark.sql.functions as f
-
-def create_path(filename):
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(current_directory, filename)
+import datetime
 
 def extract_user_item_rating(df):
     user = df[0]
@@ -44,23 +36,23 @@ def mapValueResult(x):
 
     return  ((user_avg[0]), '|'.join(result_list))
 
-def createUserItemMatrix(mysql_url, mysql_properties, items_file, avg_file, output_file, table_name):
-    #item_list
+def createUserItemMatrix(mysql_url, mysql_properties, items_file, avg_file, output_file, table_name, output_file_cluster):
+    # Lấy list item
     items_path = items_file
     items = create_item_list(items_path)
 
     spark = SparkSession.builder.appName('UserItemMatrix').getOrCreate()
     
+    # Lấy dữ liệu rating
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
-    
     lines_input_file = df.rdd.map(lambda row: (row.user_id, row.item_id, row.rating))
     user_item_rating_rdd = lines_input_file.map(extract_user_item_rating)
     
-    #avergrate user rating
+    # rating trung bình
     avg_ratings = spark.sparkContext.textFile(avg_file)
     user_avg_rating_rdd = avg_ratings.map(extract_avg_rating)
 
-    #user_rdd
+    # Tạo user_rdd
     user_rdd = user_avg_rating_rdd.keys()
     
     oneuser_moreitem_rdd = user_avg_rating_rdd. join(user_rdd.map(lambda x: (x,list(items)))).map(lambda x: ((x[0],x[1][0]),x[1][1])) # [0] (user,avg) [(item,rate(-1)),...]
@@ -71,30 +63,37 @@ def createUserItemMatrix(mysql_url, mysql_properties, items_file, avg_file, outp
     user_avg_item_rdd_0 = user_avg_item_rdd_0.map (lambda x : ((x[0][0],x[1][0]),(x[0][1],x[1][1])))#[0](u,a),(i,r); [,](u,a),(i,r);...
     user_avg_item_rdd_0 = user_avg_item_rdd_0.sortByKey().reduceByKey(lambda x,y : x + y).map(lambda x: list(x))
 
+    # Ghi kết quả vào HDFS
     result_rdd = oneuser_moreitem_rdd.join(user_avg_item_rdd_0)
     result = result_rdd.map(mapValueResult).toDF(["user","ItemRating"])
-
+    # result = result.coalesce(1)
     result.write.mode('overwrite').options(header='False', delimiter='\t').csv(output_file)
-
+    result.write.mode('overwrite').options(header='False', delimiter='\t').csv(output_file_cluster)
+    # result = result.coalesce(1)
+    # result.write.mode('overwrite').parquet(output_file)
+    # result.write.mode('overwrite').parquet(output_file_cluster)
     spark.stop()
 
-if __name__ == '__main__':
-    spark = SparkSession.builder \
-        .appName("CreateUserItemMatrix") \
-        .config("spark.jars", "mysql-connector-java-8.0.13.jar") \
-        .getOrCreate()
-
-    mysql_url = "jdbc:mysql://localhost:3306/ecommerce?useSSL=false"
+if __name__ == "__main__":
+    s = datetime.datetime.now()
+    host = 'localhost'
+    port = '3306'
+    user = 'root'
+    password = '1234'
+    
+    mysql_url = f"jdbc:mysql://{host}:{port}/ecommerce?useSSL=false"
     mysql_properties = {
-        "user": "root",
-        "password": "Password@123",
+        "user": user,
+        "password": password,
         "driver": "com.mysql.cj.jdbc.Driver"
     }
-
-    avg_file = "hdfs:///HM_clustering/AverageRating"
-    items_file = "hdfs:///HM_clustering/Item"
-    output_file = "hdfs:///HM_clustering/UserItemMatrix"
-    createUserItemMatrix(spark, mysql_url, mysql_properties, items_file, avg_file, output_file)
-    spark.stop()
-
+    table_name = 'TrainingData'
+    
+    avg_file = "hdfs://localhost:9000/HM_clustering/AverageRating"
+    items_file = "hdfs://localhost:9000/HM_clustering/Item"
+    output_file = "hdfs://localhost:9000/HM_clustering/UserItemMatrix"
+    output_file_cluster = "hdfs://localhost:9000/HM_clustering/UserItemMatrixCluster"
+    createUserItemMatrix(mysql_url, mysql_properties, items_file, avg_file, output_file, table_name, output_file_cluster)
+    e = datetime.datetime.now()
+    print('>>>', (e - s))
 
