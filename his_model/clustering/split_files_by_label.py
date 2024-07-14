@@ -4,7 +4,7 @@ import os
 import shutil
 
 def splitClusterInfo(spark, mysql_url, mysql_properties, table_name):
-    # Đọc bảng huấn luyện 
+    # Đọc bảng huấn luyện
     df = spark.read.jdbc(mysql_url, table_name, properties=mysql_properties)
     input_file_rdd = df.rdd.map(lambda row: (row.user_id, row.item_id, row.rating, row.timestamp))
     cols = ["user_id","item_id", "rating", "timestamp"]
@@ -20,12 +20,6 @@ def splitClusterInfo(spark, mysql_url, mysql_properties, table_name):
                         input_file.rating,
                         input_file.timestamp,
                         labels.label)
-    # joined_df.write.jdbc(
-    #     url=mysql_url,
-    #     table="TrainingData_Cluster",
-    #     mode="overwrite",
-    #     properties=mysql_properties
-    # )
 
     # Tính rating trung bình
     avg_rating_df = joined_df.groupBy("user_id", "label").agg(F.avg("rating").alias("avg_rating"))
@@ -62,21 +56,21 @@ def clear_directory(directory):
         shutil.rmtree(directory)
     os.makedirs(directory)
     
-# if __name__ == "__main__":
+if __name__ == "__main__":
     
-#     host = 'localhost'
-#     port = '3306'
-#     user = 'root'
-#     password = '1234'
+    host = 'mysql-ecommerce-nhut0789541410-f8ba.e.aivencloud.com'
+    port = '27163'
+    user = 'avnadmin'
+    password = 'AVNS_SQHY8Ivz7J5kp9ElUF2'
     
-#     mysql_url = f"jdbc:mysql://{host}:{port}/ecommerce?useSSL=false"
-#     mysql_properties = {
-#         "user": user,
-#         "password": password,
-#         "driver": "com.mysql.cj.jdbc.Driver"
-#     }
-#     table_name = 'TrainingData'
-#     spark = SparkSession.builder \
-#         .appName("SplitFile") \
-#         .getOrCreate()
-#     splitClusterInfo(spark, mysql_url, mysql_properties, table_name)
+    mysql_url = f"jdbc:mysql://{host}:{port}/ecommerce?useSSL=false"
+    mysql_properties = {
+        "user": user,
+        "password": password,
+        "driver": "com.mysql.cj.jdbc.Driver"
+    }
+    table_name = 'TrainingData'
+    spark = SparkSession.builder \
+        .appName("SplitFile") \
+        .getOrCreate()
+    splitClusterInfo(spark, mysql_url, mysql_properties, table_name)
